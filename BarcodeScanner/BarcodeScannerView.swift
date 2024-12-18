@@ -14,7 +14,7 @@ struct BarcodeScannerView: View {
             VStack {
                 Spacer()
                 
-                Rectangle()
+                ScannerView()
                     .frame(maxWidth: .infinity, maxHeight: 300)
                     .foregroundStyle(.black.gradient)
                 

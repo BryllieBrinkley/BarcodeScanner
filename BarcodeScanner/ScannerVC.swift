@@ -4,7 +4,6 @@
 //
 //  Created by Jibryll Brinkley on 12/17/24.
 //
-
 import UIKit
 import AVFoundation
 
@@ -31,31 +30,75 @@ final class ScannerVC: UIViewController {
         self.scannerDelegate = scannerDelegate
     }
     
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupCaptureSection()
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        guard let previewLayer = previewLayer else {
+            scannerDelegate?.didSurface(error: .invalidDeviceInput)
+            return
+        }
+        
+        previewLayer.frame = view.layer.bounds
+    }
     
     
     private func setupCaptureSection() {
-       
-        guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else {
-            scannerDelegate?.didSurface(error: .invalidDeviceInput)
-            return
-        }
         
+        let cameraAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        
+        switch cameraAuthorizationStatus {
+        case .notDetermined:
+            // Request permission
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        self?.configureCaptureSession()
+                    } else {
+                        self?.scannerDelegate?.didSurface(error: .invalidDeviceInput)
+                    }
+                }
+            }
+        case .restricted, .denied:
+            // Access is restricted or denied
+            scannerDelegate?.didSurface(error: .invalidDeviceInput)
+        case .authorized:
+            // Access is already granted
+            configureCaptureSession()
+        @unknown default:
+            // Handle unexpected cases
+            scannerDelegate?.didSurface(error: .invalidDeviceInput)
+        }
+    }
+    private func configureCaptureSession() {
+            guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else {
+                scannerDelegate?.didSurface(error: .invalidDeviceInput)
+                return
+            }
+            
         let videoInput: AVCaptureDeviceInput
         
-        do {
-            try videoInput = AVCaptureDeviceInput(device: videoCaptureDevice)
-        } catch {
-            scannerDelegate?.didSurface(error: .invalidDeviceInput)
-            return
-        }
-        
-        if captureSession.canAddInput(videoInput) {
-            captureSession.addInput(videoInput)
-        } else {
-            scannerDelegate?.didSurface(error: .invalidDeviceInput)
-            return
-        }
+            do {
+                try videoInput = AVCaptureDeviceInput(device: videoCaptureDevice)
+            } catch {
+                scannerDelegate?.didSurface(error: .invalidDeviceInput)
+                return
+            }
+            
+            if captureSession.canAddInput(videoInput) {
+                captureSession.addInput(videoInput)
+            } else {
+                scannerDelegate?.didSurface(error: .invalidDeviceInput)
+                return
+            }
         
         let metaDataOutput = AVCaptureMetadataOutput()
         
@@ -72,7 +115,7 @@ final class ScannerVC: UIViewController {
         previewLayer!.videoGravity = .resizeAspectFill
         view.layer.addSublayer(previewLayer!)
         
-        captureSession.startRunning()
+        captureSession.startRunning() 
     }
     
 }
