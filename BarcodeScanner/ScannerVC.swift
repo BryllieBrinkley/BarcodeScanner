@@ -115,7 +115,7 @@ final class ScannerVC: UIViewController {
         previewLayer!.videoGravity = .resizeAspectFill
         view.layer.addSublayer(previewLayer!)
         
-        captureSession.startRunning() 
+        captureSession.startRunning()
     }
     
 }
@@ -138,6 +138,8 @@ extension ScannerVC: AVCaptureMetadataOutputObjectsDelegate {
             scannerDelegate?.didSurface(error: .invalidScannedValue)
             return
         }
+        
+//        captureSession.stopRunning() // Capture session will stop running once a barcode is detected
         scannerDelegate?.didFind(barcode: barcode)
     }
 }
