@@ -50,7 +50,6 @@ final class ScannerVC: UIViewController {
         previewLayer.frame = view.layer.bounds
     }
     
-    
     private func setupCaptureSection() {
         
         let cameraAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
@@ -68,22 +67,20 @@ final class ScannerVC: UIViewController {
                 }
             }
         case .restricted, .denied:
-            // Access is restricted or denied
             scannerDelegate?.didSurface(error: .invalidDeviceInput)
         case .authorized:
-            // Access is already granted
             configureCaptureSession()
         @unknown default:
-            // Handle unexpected cases
             scannerDelegate?.didSurface(error: .invalidDeviceInput)
         }
     }
+    
     private func configureCaptureSession() {
             guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else {
                 scannerDelegate?.didSurface(error: .invalidDeviceInput)
                 return
             }
-            
+        
         let videoInput: AVCaptureDeviceInput
         
             do {
@@ -117,7 +114,6 @@ final class ScannerVC: UIViewController {
         
         captureSession.startRunning()
     }
-    
 }
 
 extension ScannerVC: AVCaptureMetadataOutputObjectsDelegate {
@@ -139,7 +135,7 @@ extension ScannerVC: AVCaptureMetadataOutputObjectsDelegate {
             return
         }
         
-//        captureSession.stopRunning() // Capture session will stop running once a barcode is detected
+//        captureSession.stopRunning() // Capture session will stop running once barcode is detected
         scannerDelegate?.didFind(barcode: barcode)
     }
 }
